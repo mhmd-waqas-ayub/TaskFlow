@@ -2,103 +2,90 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const express = require("express");
-const cors=require("cors");
+const cors = require("cors");
 const connectDB = require("./config/db");
 
-const http=require("http");
-const {Server}=require("socket.io");
-const errorMiddleware=require("./middleware/errorMiddleware");
-
+const http = require("http");
+const { Server } = require("socket.io");
+const errorMiddleware = require("./middleware/errorMiddleware");
 
 // ✅ Connect DB FIRST
 connectDB();
 
 const app = express();
-// Socket And Server
-const server=http.createServer(app);
-const io=new Server(server,{
-    cors:{
-        origin:"http://localhost:5173",
-        methods:["GET","POST","PATCH","DELETE"]   
-    }
+const server = http.createServer(app);
+
+// ✅ Dynamic CORS Array
+const allowedOrigins = [
+    "http://localhost:5173",       // Local development frontend
+    process.env.FRONTEND_URL       // Future production frontend (will set this in Railway )
+];
+
+// ✅ Socket.io CORS Configuration
+const io = new Server(server, {
+    cors: {
+        origin: allowedOrigins,
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+        credentials: true
+    }
 });
-app.set("io",io);
-
-
+app.set("io", io);
 
 // ✅ Middleware
 app.use(express.json());
 
-//cors:
+// ✅ Express CORS Configuration
 app.use(cors({
-    origin:"http://localhost:5173",
-    methods:["GET","POST","PUT","PATCH","DELETE"],
-    credentials:true
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like Postman or mobile requests)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) === -1) {
+            const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+            return callback(new Error(msg), false);
+        }
+        return callback(null, true);
+    },
+    credentials: true
 }));
 
+const authMiddleware = require("./middleware/authMiddleware");
+const roleMiddleware = require("./middleware/roleMiddleware");
 
-
-const authMiddleware=require("./middleware/authMiddleware");
-const roleMiddleware=require("./middleware/roleMiddleware");
-
-
-
-app.get("/api/admin",
-    authMiddleware,
-    roleMiddleware("admin")
-,(req,res)=>{
-    res.json({
-        message:"Welcome to Admin Panel",
-        
-        // user:req.user
-    })
-})
-
+app.get("/api/admin", authMiddleware, roleMiddleware("admin"), (req, res) => {
+    res.json({ message: "Welcome to Admin Panel" });
+});
 
 // ✅ Routes
 const authRoutes = require("./routes/authRoutes");
-const projectRoutes=require("./routes/projectRoutes");
-const taskRoutes=require("./routes/taskRoutes");
+const projectRoutes = require("./routes/projectRoutes");
+const taskRoutes = require("./routes/taskRoutes");
+
 app.use("/api/auth", authRoutes);
-app.use("/api/projects",projectRoutes);
-app.use("/api/tasks",taskRoutes);
+app.use("/api/projects", projectRoutes);
+app.use("/api/tasks", taskRoutes);
 app.use(errorMiddleware);
 
+// ✅ Socket.io Connections
+io.on("connection", (socket) => {
+    console.log("User connected:", socket.id);
 
-
-
-// Connected
-
-io.on("connection",(socket)=>{
-    console.log("User connected:",socket.id)
-
-    // Join Project Room                         Rooms: without room every user recieve every update
-    socket.on("joinProject",(projectId)=>{
-        socket.join(projectId);
-        console.log(
-            `Socket joined projects:${projectId}`
-        )
-    });
-    
-    // Disconnect
-    socket.on("disconnect",()=>{
-        console.log("User Disconnected")
-    
-    });
-
+    socket.on("joinProject", (projectId) => {
+        socket.join(projectId);
+        console.log(`Socket joined projects:${projectId}`);
+    });
+    
+    socket.on("disconnect", () => {
+        console.log("User Disconnected");
+    });
 });
 
 
-
-// ✅ Start server
 const PORT = process.env.PORT || 5000;
 
-// app.listen(PORT,'127.0.0.1',()=>{
-//     console.log(`Server running on: http://127.0.0.1:  ${PORT}`);
-// });
-server.listen(PORT,0,0,0,0,  ()=>{
-    console.log(`Server is running on:http://localhost:${PORT}`);
-    console.log("Socket.io is Initialized and listening")
+
+server.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log("Socket.io is Initialized and listening");
 });
 
-module.exports={ io };
+module.exports = { io };
