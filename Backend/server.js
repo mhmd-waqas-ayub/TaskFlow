@@ -51,6 +51,10 @@ app.use(cors({
 const authMiddleware = require("./middleware/authMiddleware");
 const roleMiddleware = require("./middleware/roleMiddleware");
 
+app.get("/", (req, res) => {
+    res.send("Backend is running");
+});
+
 app.get("/api/admin", authMiddleware, roleMiddleware("admin"), (req, res) => {
     res.json({ message: "Welcome to Admin Panel" });
 });
