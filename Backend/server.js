@@ -86,9 +86,10 @@ io.on("connection", (socket) => {
 
 
 const PORT = process.env.PORT || 5000;
+console.log("PORT FROM RAILWAY:", process.env.PORT);
 
 
-server.listen(PORT, "0.0.0.0", () => {
+server.listen(PORT,  () => {
     console.log(`Server running on port ${PORT}`);
     console.log("Socket.io is Initialized and listening");
 });
