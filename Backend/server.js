@@ -33,6 +33,7 @@ app.set("io", io);
 
 // ✅ Middleware
 app.use(express.json());
+console.log("Server file loaded successfully");
 
 // ✅ Express CORS Configuration
 app.use(cors({
