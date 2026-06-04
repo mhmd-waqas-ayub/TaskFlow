@@ -1,6 +1,5 @@
 const dotenv = require("dotenv");
 
-// Load env only in development
 if (process.env.NODE_ENV !== "production") {
     dotenv.config();
 }
@@ -8,28 +7,26 @@ if (process.env.NODE_ENV !== "production") {
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
-
-const http = require("http");
-const { Server } = require("socket.io");
 const errorMiddleware = require("./middleware/errorMiddleware");
 
-const app = express();
-const server = http.createServer(app);
+const { Server } = require("socket.io");
 
-// ---------------- CORS ----------------
+const app = express();
+
+// ---------------- MIDDLEWARE ----------------
+app.use(express.json());
+
 const allowedOrigins = [
     "http://localhost:5173",
     process.env.FRONTEND_URL
 ];
 
-// ---------------- Middleware ----------------
-app.use(express.json());
-
+// ---------------- CORS ----------------
 app.use(cors({
     origin: function (origin, callback) {
         if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) === -1) {
-            return callback(new Error("CORS not allowed"), false);
+        if (!allowedOrigins.includes(origin)) {
+            return callback(new Error("CORS blocked"), false);
         }
         return callback(null, true);
     },
@@ -38,13 +35,22 @@ app.use(cors({
 
 console.log("Server file loaded successfully");
 
-// ---------------- Routes ----------------
-const authMiddleware = require("./middleware/authMiddleware");
-const roleMiddleware = require("./middleware/roleMiddleware");
-
+// ---------------- TEST ROUTE ----------------
 app.get("/", (req, res) => {
     res.send("Backend is running");
 });
+
+// ---------------- ROUTES ----------------
+const authMiddleware = require("./middleware/authMiddleware");
+const roleMiddleware = require("./middleware/roleMiddleware");
+
+const authRoutes = require("./routes/authRoutes");
+const projectRoutes = require("./routes/projectRoutes");
+const taskRoutes = require("./routes/taskRoutes");
+
+app.use("/api/auth", authRoutes);
+app.use("/api/projects", projectRoutes);
+app.use("/api/tasks", taskRoutes);
 
 app.get("/api/admin",
     authMiddleware,
@@ -54,13 +60,6 @@ app.get("/api/admin",
     }
 );
 
-const authRoutes = require("./routes/authRoutes");
-const projectRoutes = require("./routes/projectRoutes");
-const taskRoutes = require("./routes/taskRoutes");
-
-app.use("/api/auth", authRoutes);
-app.use("/api/projects", projectRoutes);
-app.use("/api/tasks", taskRoutes);
 app.use(errorMiddleware);
 
 // ---------------- SERVER START ----------------
@@ -70,13 +69,12 @@ const startServer = async () => {
 
         const PORT = process.env.PORT || 5000;
 
-        server.listen(PORT, "0.0.0.0", () => {
-            console.log("PORT FROM RAILWAY:", process.env.PORT);
+        const server = app.listen(PORT, "0.0.0.0", () => {
+            console.log("PORT FROM RAILWAY:", PORT);
             console.log(`Server running on port ${PORT}`);
-            console.log("Socket.io is Initialized and listening");
         });
 
-        // ---------------- SOCKET.IO (AFTER SERVER START) ----------------
+        // ---------------- SOCKET.IO ----------------
         const io = new Server(server, {
             cors: {
                 origin: allowedOrigins,
@@ -92,16 +90,16 @@ const startServer = async () => {
 
             socket.on("joinProject", (projectId) => {
                 socket.join(projectId);
-                console.log(`Socket joined projects:${projectId}`);
+                console.log("Joined project:", projectId);
             });
 
             socket.on("disconnect", () => {
-                console.log("User Disconnected");
+                console.log("User disconnected");
             });
         });
 
     } catch (err) {
-        console.error("Failed to start server:", err);
+        console.error("Server failed to start:", err);
     }
 };
 
