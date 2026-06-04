@@ -13,7 +13,7 @@ const { Server } = require("socket.io");
 const errorMiddleware = require("./middleware/errorMiddleware");
 
 // ✅ Connect DB FIRST
-connectDB();
+// connectDB();
 
 const app = express();
 const server = http.createServer(app);
@@ -88,13 +88,28 @@ io.on("connection", (socket) => {
 });
 
 
-const PORT = process.env.PORT || 5000;
-console.log("PORT FROM RAILWAY:", process.env.PORT);
 
 
-server.listen(PORT, "0.0.0.0",  () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log("Socket.io is Initialized and listening");
-});
 
+const startServer = async () => {
+    try {
+        await connectDB(); // WAIT for DB first
+
+        const PORT = process.env.PORT || 5000;
+        
+         console.log("PORT FROM RAILWAY:", process.env.PORT);
+
+        server.listen(PORT, "0.0.0.0", () => {
+            console.log("Server file loaded successfully");
+            console.log("PORT FROM RAILWAY:", process.env.PORT);
+            console.log(`Server running on port ${PORT}`);
+            console.log("Socket.io is Initialized and listening");
+        });
+
+    } catch (err) {
+        console.error("Failed to start server:", err);
+    }
+};
+
+startServer();
 module.exports = { io };
