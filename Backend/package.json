@@ -2,8 +2,9 @@
   "name": "dev-collab-platform",
   "version": "1.0.0",
   "description": "",
-  "main": "indexnpm insta.js",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
     "dev": "nodemon server.js"
   },
   "keywords": [],
