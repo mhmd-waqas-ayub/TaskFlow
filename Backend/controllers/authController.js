@@ -64,6 +64,9 @@ exports.loginUser = async (req, res) => {
         }
 
         const user = await User.findOne({ email });
+        
+        console.log("EMAIL:", email);
+        console.log("USER FOUND:", user);
 
         if (!user) {
             return res.status(400).json({
@@ -72,6 +75,9 @@ exports.loginUser = async (req, res) => {
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
+
+        console.log("STORED PASSWORD:", user.password);
+        console.log("PASSWORD MATCH:", isMatch);
 
         if (!isMatch) {
             return res.status(400).json({

@@ -14,12 +14,12 @@ const projectSchema=new mongoose.Schema({
     },
     owner:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:User,
+        ref:"User",
         required:true
     },
     members:[{
         type:mongoose.Schema.Types.ObjectId,
-        ref:User
+        ref:"User"
     }],
     status:{
         type:String,

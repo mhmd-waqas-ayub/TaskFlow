@@ -73,6 +73,54 @@ exports.getSingleProject = asyncHandler(async (req, res) => {
     res.status(200).json(project);
 });
 
+
+exports.addMemberToProject = async (req, res) => {
+    try {
+        const projectId = req.params.id;
+        const { userId } = req.body;
+
+        const project = await Project.findById(projectId);
+
+        if (!project) {
+            return res.status(404).json({
+                message: "Project not found"
+            });
+        }
+
+        // only owner allowed
+        if (project.owner.toString() !== req.user.id) {
+            return res.status(403).json({
+                message: "Only project owner can add members"
+            });
+        }
+
+        // check duplicate
+        const exists = project.members.some(
+            (m) => m.toString() === userId
+        );
+
+        if (exists) {
+            return res.status(400).json({
+                message: "User already in project"
+            });
+        }
+
+        project.members.push(userId);
+        await project.save();
+
+        res.status(200).json({
+            message: "Member added successfully",
+            project
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
+};
+
+
 exports.updateProject = asyncHandler(async (req, res) => {
     const projectId = req.params.id;
     const userId = req.user.id;
