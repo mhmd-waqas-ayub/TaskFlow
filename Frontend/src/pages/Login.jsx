@@ -1,61 +1,62 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
-import {  useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 
-export default function Login(){
-    const [email,setEmail]=useState("");
-    const [password,setPassword]=useState("");
-    const {login}=useAuth();
-    const navigate=useNavigate();
-    
+export default function Login() {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
 
-    const handleLogin=async (e)=>{
+    const { login } = useAuth();
+    const navigate = useNavigate();
+
+    const handleLogin = async (e) => {
         e.preventDefault();
 
         try {
-            const res=await api.post("/auth/login",{
+            const res = await api.post("/auth/login", {
                 email,
                 password
             });
+
+            // save token
             login(res.data.token);
+
             navigate("/");
         } catch (error) {
-            alert("Login Failed",error)
-            
+            console.log("LOGIN ERROR:", error);
+
+            alert(
+                error?.response?.data?.message ||
+                "Login failed"
+            );
         }
-
     };
-    return(
-        <div className="min-h-screen items-center justify-center">
-            <form
-            onSubmit={handleLogin}
-            className="p-6 border rounded w-80">
-           
-           <h2 className="text-xl mb-4">
-            Login
-           </h2>
-           <input
-           type="email"
-           placeholder="Email"
-           className="w-full mb-3 p-2 border"
-           onChange={(e)=>setEmail(e.target.value)}
-           
-           />
-           <input 
-           type="password"
-           placeholder="Password"
-           className="w-full mb-3 p-2 border"
-           onChange={(e)=>setPassword(e.target.value)}
-           />
-        <button className="w-full bg-blue-500 text-white p-2">
-            Login
-        </button>
-        
 
+    return (
+        <div className="min-h-screen flex items-center justify-center">
+            <form onSubmit={handleLogin} className="p-6 border rounded w-80">
+
+                <h2 className="text-xl mb-4">Login</h2>
+
+                <input
+                    type="email"
+                    placeholder="Email"
+                    className="w-full mb-3 p-2 border"
+                    onChange={(e) => setEmail(e.target.value)}
+                />
+
+                <input
+                    type="password"
+                    placeholder="Password"
+                    className="w-full mb-3 p-2 border"
+                    onChange={(e) => setPassword(e.target.value)}
+                />
+
+                <button className="w-full bg-blue-500 text-white p-2">
+                    Login
+                </button>
             </form>
         </div>
-    )
-
-
+    );
 }

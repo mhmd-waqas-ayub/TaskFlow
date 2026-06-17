@@ -1,22 +1,17 @@
 import axios from "axios";
 
-const api=axios.create({
-    baseURL:import.meta.env.VITE_API_URL
+const api = axios.create({
+    baseURL: "https://taskflow-production-1eff.up.railway.app/api",
 });
-api.interceptors.request.use((config)=>{
-    const token=localStorage.getItem("token");
-    console.log("Token :",token);
 
-if(token){
-    config.headers.Authorization=`Bearer ${token}`;
-};
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem("token");
 
-return config;
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
 
+    return config;
 });
 
 export default api;
- 
-
-
-

@@ -5,8 +5,8 @@ import Layout from "../components/Layout";
 import AnalyticsCharts from "../components/AnalyticsCharts";
 import StatsCard from "../components/StatsCard";
 import { toast } from "react-hot-toast";
-import ButtonLoader from "../components/buttonLoader";
-import SkeletonCard from "../components/SkeltonCard";
+import ButtonLoader from "../components/ButtonLoader";
+import SkeltonCard from "../components/SkeltonCard";
 
 export default function Dashboard() {
   const [projects, setProjects] = useState([]);
@@ -115,7 +115,7 @@ export default function Dashboard() {
       {loading ? (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map((item) => (
-            <SkeletonCard key={item} />
+            <SkeltonCard key={item} />
           ))}
         </div>
       ) : projects.length === 0 ? (
