@@ -204,7 +204,7 @@ Designed a mobile-friendly interface with modern loading states and dark mode su
 
 ### Clone Repository
 
-git clone YOUR_REPOSITORY_URL
+git clone https://github.com/mhmd-waqas-ayub/TaskFlow.git
 
 ### Backend
 
